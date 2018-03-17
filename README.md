@@ -1,1 +1,1 @@
-#Client-side Auth with React/Redux
+Client-side Auth with React/Redux

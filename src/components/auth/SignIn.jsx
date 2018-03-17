@@ -1,12 +1,23 @@
 import React, { Component } from 'react';
 import { reduxForm } from 'redux-form';
 import { connect } from 'react-redux';
-import { signInUser } from '../../redux/signIn.js';
+import { signInUser } from '../../redux/auth.js';
 
 class SignIn extends Component {
   handleFormSubmit = ({ email, password }) => {
-    // Need to do something to log user in
-    this.props.signInUser({ email, password });
+    this.props.signInUser({ email, password }, () => {
+      this.props.history.push('/feature');
+    });
+  };
+
+  renderAlert = () => {
+    if (this.props.errorMsg) {
+      return (
+        <div className="alert alert-danger">
+          <strong>Oops!</strong> {this.props.errorMessage}
+        </div>
+      );
+    }
   };
 
   render() {
@@ -22,6 +33,7 @@ class SignIn extends Component {
           <label>Password:</label>
           <input {...password} type="password" className="form-control" />
         </fieldset>
+        {this.renderAlert()}
         <button action="submit" className="btn btn-primary">
           Sign in
         </button>
@@ -30,7 +42,11 @@ class SignIn extends Component {
   }
 }
 
+const mapStateToProps = (state) => ({
+  errorMsg: state.auth.errorMsg
+});
+
 export default reduxForm({
   form: 'signin',
   fields: ['email', 'password']
-})(connect(null, { signInUser })(SignIn));
+})(connect(mapStateToProps, { signInUser })(SignIn));
