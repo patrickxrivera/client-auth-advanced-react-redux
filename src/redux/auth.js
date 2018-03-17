@@ -2,9 +2,10 @@ import axios from 'axios';
 import { createAction, handleActions } from 'redux-actions';
 
 const ROOT_URL = 'http://localhost:3030';
-const AUTH_USER = 'AUTH_USER';
+export const AUTH_USER = 'AUTH_USER';
 const UNAUTH_USER = 'UNAUTH_USER';
 const AUTH_ERROR = 'AUTH_ERROR';
+const FETCH_MESSAGE = 'FETCH_MESSAGE';
 
 export const signInUser = ({ email, password }, callback) => {
   return (dispatch) => {
@@ -34,7 +35,35 @@ export const signOutUser = () => {
   return { type: UNAUTH_USER };
 };
 
+export const signUpUser = ({ email, password }, callback) => {
+  return (dispatch) => {
+    axios
+      .post(`${ROOT_URL}/signup`, { email, password })
+      .then((response) => {
+        dispatch({ type: AUTH_USER });
+        localStorage.setItem('token', response.data.token);
+        callback();
+      })
+      .catch((response) => dispatch(authError(response.data.error)));
+  };
+};
+
 export const authError = createAction(AUTH_ERROR);
+
+export const fetchMessage = () => {
+  return (dispatch) => {
+    axios
+      .get(ROOT_URL, {
+        headers: { authorization: localStorage.getItem('token') }
+      })
+      .then((response) => {
+        dispatch({
+          type: FETCH_MESSAGE,
+          payload: response.data.message
+        });
+      });
+  };
+};
 
 const initialState = {};
 
@@ -43,7 +72,8 @@ export default handleActions(
     AUTH_USER: (state, action) => {
       return {
         ...state,
-        authenticated: true
+        authenticated: true,
+        errorMsg: ''
       };
     },
     UNAUTH_USER: (state, action) => {
@@ -57,6 +87,13 @@ export default handleActions(
       return {
         ...state,
         errorMsg
+      };
+    },
+    FETCH_MESSAGE: (state, action) => {
+      const msg = action.payload;
+      return {
+        ...state,
+        msg
       };
     }
   },
